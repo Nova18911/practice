@@ -1,62 +1,68 @@
-﻿using System.Data;
-
-namespace task_class
+﻿namespace task_class
 {
     internal class Solution
     {
         class Product
         {
-            private string _name;
-            private string _manufacturer;
-            private double _price;
-            private DateOnly _expirationDate;
-            private DateOnly _productionDate;
+            public string Name { get; }
+            public string Manufacturer { get; }
+            public double Price { get; }
+            public DateOnly ExpirationDate { get; }
+            public DateOnly ProductionDate { get; }
 
-            public string Name => _name;
-            public string Manufacturer => _manufacturer;
-            public double Price => _price;
-            public DateOnly ExpirationDate => _expirationDate;
-            public DateOnly ProductionDate => _productionDate;
-
-            public Product(string name, string manufacturer, double price, DateOnly expirationDate, DateOnly productionDate)
+            public Product(string name, string manufacturer, double price,
+                           DateOnly expirationDate, DateOnly productionDate)
             {
-                if (string.IsNullOrEmpty(name)) 
-                {
-                    throw new ArgumentException("Наименование не может быть пустым");
-                }
-
-                if (string.IsNullOrEmpty(manufacturer))
-                {
-                    throw new ArgumentException("Производитель не может быть пустым");
-                }
-
+                if (string.IsNullOrWhiteSpace(name))
+                    throw new ArgumentNullException(nameof(name), "Наименование не может быть пустым.");
+                if (string.IsNullOrWhiteSpace(manufacturer))
+                    throw new ArgumentNullException(nameof(manufacturer), "Производитель не может быть пустым.");
                 if (price <= 0)
-                {
-                    throw new ArgumentException("Цена должна быть положительной");
-                }
-
+                    throw new ArgumentOutOfRangeException(nameof(price), "Цена должна быть положительной.");
                 if (productionDate > DateOnly.FromDateTime(DateTime.Now))
-                {
-                    throw new ArgumentException("Дата производства не может быть в будущем");
-                }
-
+                    throw new ArgumentOutOfRangeException(nameof(productionDate), "Дата производства не может быть в будущем.");
                 if (expirationDate <= productionDate)
-                {
-                    throw new ArgumentException("Срок годности должен быть позже даты производства");
-                }
+                    throw new ArgumentOutOfRangeException(nameof(expirationDate), "Срок годности должен быть позже даты производства.");
 
-                _name = name;
-                _manufacturer = manufacturer;
-                _price = price;
-                _expirationDate = expirationDate;
-                _productionDate = productionDate;
+                Name = name;
+                Manufacturer = manufacturer;
+                Price = price;
+                ExpirationDate = expirationDate;
+                ProductionDate = productionDate;
             }
 
-            public override string ToString()
-            {
-                return $"Наименование: {_name}\nПроизводитель: {_manufacturer}\nЦена: {_price:0.00} руб.\n" +
-                    $"Дата произв.: {_productionDate}\nСрок годности: {_expirationDate}";
-            }
+            public override string ToString() =>
+                $"Наименование: {Name}\n" +
+                $"Производитель: {Manufacturer}\n" +
+                $"Цена: {Price:0.00} руб.\n" +
+                $"Дата произв.: {ProductionDate}\n" +
+                $"Срок годности: {ExpirationDate}";
+        }
+
+        /// <summary>
+        /// Считывает значение из консоли и преобразует его в указанный тип.
+        /// </summary>
+        /// <typeparam name="T">тип, к которому приводится введённая строка.</typeparam>
+        /// <param name="prompt">сообщение-подсказка для пользователя.</param>
+        /// <returns>введённое значение, приведённое к типу <typeparamref name="T"/>.</returns>
+        static T ReadValue<T>(string prompt) where T : IConvertible
+        {
+            Console.Write(prompt);
+            return (T)Convert.ChangeType(Console.ReadLine(), typeof(T));
+        }
+
+        /// <summary>
+        /// Считывает дату из консоли в формате гггг-мм-дд.
+        /// </summary>
+        /// <param name="prompt">сообщение-подсказка для пользователя.</param>
+        /// <returns>введённая дата типа <see cref="DateOnly"/>.</returns>
+        /// <exception cref="ArgumentException">если формат даты неверен.</exception>
+        static DateOnly ReadDate(string prompt)
+        {
+            Console.Write(prompt);
+            if (!DateOnly.TryParse(Console.ReadLine(), out DateOnly date))
+                throw new ArgumentException("Неверный формат даты (ожидается гггг-мм-дд).");
+            return date;
         }
 
         static void Main(string[] args)
@@ -65,42 +71,24 @@ namespace task_class
             {
                 Console.WriteLine("Введите данные о продукте:");
 
-                Console.Write("Наименование: ");
-                string name = Console.ReadLine();
-
-                Console.Write("Производитель: ");
-                string manufacturer = Console.ReadLine();
-
-                Console.Write("Цена: ");
-                if (!double.TryParse(Console.ReadLine(), out double price))
-                {
-                    throw new ArgumentException("Неверный формат цены");
-                }
-
-                Console.Write("Дата производства (гггг-мм-дд): ");
-                if (!DateOnly.TryParse(Console.ReadLine(), out DateOnly productionDate))
-                {
-                    throw new ArgumentException("Неверный формат даты производства");
-                }
-
-                Console.Write("Срок годности (гггг-мм-дд): ");
-                if (!DateOnly.TryParse(Console.ReadLine(), out DateOnly expirationDate))
-                {
-                    throw new ArgumentException("Неверный формат срока годности");
-                }
+                string name = ReadValue<string>("Наименование: ");
+                string manufacturer = ReadValue<string>("Производитель: ");
+                double price = ReadValue<double>("Цена: ");
+                DateOnly productionDate = ReadDate("Дата производства (гггг-мм-дд): ");
+                DateOnly expirationDate = ReadDate("Срок годности (гггг-мм-дд): ");
 
                 Product product = new Product(name, manufacturer, price, expirationDate, productionDate);
 
                 Console.WriteLine("\nИнформация о продукте:");
-                Console.WriteLine(product.ToString());
+                Console.WriteLine(product);
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"\nОшибка ввода: {ex.Message}");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"\nНепредвиденная ошибка: {ex.Message}");
+                Console.WriteLine("\nОшибка: введите корректные значения.");
             }
         }
     }

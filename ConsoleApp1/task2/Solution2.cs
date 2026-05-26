@@ -5,27 +5,39 @@ namespace task2
 {
     internal class Solution2
     {
-        static string Rhomb(int n)
+        /// <summary>
+        /// Формирует ромб с диагональю <paramref name="n"/>.
+        /// </summary>
+        /// <param name="n"> диагональ ромба</param>
+        /// <returns>ромб в виде послед-ти символов.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">если число меньше или равно 0 или четное.</exception>
+        static string GetRhomb(int n)
         {
-            StringBuilder rhomb = new StringBuilder();
-            int center = n / 2;
-            for (int i = 0; i < n; i++)
+            if (n <= 0 || n % 2 == 0)
             {
-                for (int j = 0; j < n; j++)
+                throw new ArgumentOutOfRangeException(nameof(n),
+                    "Ожидается положительное число и нечетное число");
+                
+            }
+
+            StringBuilder rhomb = new StringBuilder();
+            var center = n / 2;
+            for (var i = 0; i < n; i++)
+            {
+                for (var j = 0; j < n; j++)
                 {
-                    if (Math.Abs(i - center) + Math.Abs(j - center) == center)
-                    {
-                        rhomb.Append("X");
-                    }
-                    else
-                    {
-                        rhomb.Append(" ");
-                    }
+                    rhomb.Append(
+                        Math.Abs(i - center) + Math.Abs(j - center) == center
+                        ? "X"
+                        : " "
+                        );
                 }
-                rhomb.Append('\n');
+                rhomb.AppendLine();
             }
             return rhomb.ToString();
         }
+
+
         static void Main(string[] args)
         {
             try
@@ -33,13 +45,7 @@ namespace task2
                 Console.Write("Введите длину диагонали ромба: ");
                 int diagonal = Convert.ToInt32(Console.ReadLine());
 
-                if (diagonal < 0 || diagonal % 2 == 0) 
-                {
-                    Console.WriteLine("Число должно быть положительным и нечетным");
-                    return;
-                }
-
-                string rhomb = Rhomb(diagonal);
+                string rhomb = GetRhomb(diagonal);
                 Console.WriteLine(rhomb);
             }
             catch (Exception ex)
